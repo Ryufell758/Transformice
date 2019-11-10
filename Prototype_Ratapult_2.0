@@ -1,0 +1,452 @@
+tfm.exec.disableAllShamanSkills(disable)
+tfm.exec.disableMortCommand(disable)
+tfm.exec.disableAutoShaman(disable)
+tfm.exec.disableAutoNewGame(disable)
+tfm.exec.disableAutoTimeLeft(disable)
+tfm.exec.disablePrespawnPreview(disable)
+maps = {"@7656700","@3796990","@3793061","@3793022","@3795416","@3792252","@3787023","@3792310","@3366258","@3792641","@3792717","@3792963","@3793022","@3793061","@3793129"}
+bigorn = {}
+local indicebigorna
+tfm.exec.newGame(maps[math.random(#maps)], true)
+
+local admins = {'Spiderwii#0000'}
+local inicialgame = true
+local gameStopWin = false
+info = {}
+changeAngle = function(n, a)
+	a = a % 360
+	if a < 0 then
+		a = a + 360
+	end
+	local facingValue = tfm.get.room.playerList[n].isFacingRight and 1 or -1
+	info[n].angle = a
+	if(inicialgame == false) then
+	if(info[n].angle <= 150 and info[n].angle >= 60) then
+	tfm.exec.addShamanObject(0, tfm.get.room.playerList[n].x, tfm.get.room.playerList[n].y, -a * facingValue)
+	end
+end
+end
+
+bigornas = {"10","1002","1003","1004","1005"}
+
+eventNewPlayer = function(n)
+	system.bindKeyboard(n, 32, true, true)
+	if not info[n] then
+		info[n] = {
+			power = {0, false},
+			angle = 0,
+			angleTemp = 0,
+			bigorna = 10,
+			bigmode = false,
+			level = 100,
+			exp = 0,
+			time = 0,
+
+		}
+	end
+	changeAngle(n, 90)
+	-- Espaço atira, C muda o ângulo em sentido anti-horário e V em sentido horário	
+	for _, key in next, {string.byte(" CV", 1, 3)} do
+		system.bindKeyboard(n, key, true, true)
+	end
+	system.bindKeyboard(n, 32, false, true)
+	system.bindKeyboard(n, 49, false, true)
+	system.bindKeyboard(n, 50, false, true)
+end
+table.foreach(tfm.get.room.playerList, eventNewPlayer)
+
+
+eventKeyboard = function(n, k, d, x, y)
+	if k == string.byte("C") then
+		inicialgame = false
+		print(info[n].bigmode)
+		changeAngle(n, info[n].angle + 30)
+		if(info[n].angle > 150) then
+			info[n].angleTemp = info[n].angle - 150;
+			changeAngle(n,90 - info[n].angleTemp)
+		end
+	elseif k == string.byte("V") then
+		inicialgame = false
+		print(info[n].bigmode)
+		changeAngle(n, info[n].angle - 30)
+		if(info[n].angle <= 60) then
+			changeAngle(n,60)
+		end
+	elseif k == 49 then
+		info[n].bigmode = false;
+	elseif k == 50 then
+		info[n].bigmode = true;
+	elseif k == 32 then -- Espaço
+		if d then
+			info[n].power[2] = true
+		else
+			if info[n].power[1] > 5 then
+				for n in pairs(tfm.get.room.playerList) do
+					facingValue = tfm.get.room.playerList[n].isFacingRight and 1 or -1
+				end
+				local angle = math.rad(info[n].angle * facingValue)
+				local vx = math.sin(angle)
+				local vy = math.cos(angle)
+				bigorn[indicebigorna] = {
+					info = {nil, 5},
+				}
+				if(facingValue == 1 and info[n].angle - (90) ~= 0) then
+					--Angulo 30 a Direita
+				bigorn[indicebigorna].info[1] = tfm.exec.addShamanObject(info[n].bigorna, x + (vx * 35 + 1) + 5, y + (vy * 35) + 5,info[n].angle * (-1) + 60, vx * info[n].power[1], vy * info[n].power[1],info[n].bigmode)
+				indicebigorna = indicebigorna + 1
+				end
+				if(facingValue == 1 and info[n].angle + (-90) == 0) then
+				bigorn[indicebigorna].info[1] = tfm.exec.addShamanObject(info[n].bigorna, x + (vx * 35 + 1) + 5, y + (vy * 35) + 5,info[n].angle + (-90), vx * info[n].power[1], vy * info[n].power[1],info[n].bigmode)
+				indicebigorna = indicebigorna + 1
+				end
+				if(facingValue == -1) then
+					--ANgulo de 30 a Esquerda
+				bigorn[indicebigorna].info[1] = tfm.exec.addShamanObject(info[n].bigorna, x + (vx * 35 + 1) + 5, y + (vy * 35) + 5,info[n].angle + (-90) , vx * info[n].power[1], vy * info[n].power[1],info[n].bigmode)
+				indicebigorna = indicebigorna + 1
+				end
+			end
+			info[n].power = {0, false}
+		end
+	end
+end
+
+
+local vivo = 0
+local conter = false
+local time1 = 0
+local time2 = 0
+local timermodule = 0
+local contador = 0
+local currentmap
+local boolposition = false
+local xcentermap = 400
+local time2spanpos
+
+eventNewGame = function(n,x,y,k)
+
+tfm.exec.lowerSyncDelay (n)
+ui.setShamanName('<CE>VIVOS '..time1..'</CE> X <V></BL>'..time2..' VIVOS<V>')
+ui.setMapName('<J>Zeuszed PRO 2.0<J>')
+	indicebigorna = 0
+	inicialgame = true
+	for k, v in next, info do
+		v.power[1] = 0
+	end
+	xcentermap = 400
+	currentmap = tfm.get.room.currentMap
+	vivo = 0
+	conter = false
+	time1 = 0
+	time2 = 0
+	timermodule = 224
+	contador = 0
+	
+	timerbool = true
+    for name,player in pairs(tfm.get.room.playerList) do
+        vivo=vivo+1
+    end
+
+    for n in pairs(tfm.get.room.playerList) do
+    changeAngle(n, 90)
+	if(conter == false) then
+		info[n].time = 0
+		time1 = time1 + 1
+		conter = true
+	else
+		info[n].time = 1
+		time2 = time2 + 1
+		conter = false
+	end
+
+
+	if(info[n].time == 0) then
+		if(currentmap == '@3796990') then
+			tfm.exec.movePlayer(n, 324, 125)
+			tfm.exec.setNameColor(n,0xffffff)
+			time2spanpos = (xcentermap - 324 + 400)
+		end
+	end
+
+	if(info[n].time == 1) then
+		if(currentmap == '@3796990') then
+			tfm.exec.movePlayer(n, time2spanpos, 125)
+			tfm.exec.setNameColor(n,0xbf07bf)
+		end
+	end
+end
+end
+
+eventLoop = function(n, ct, tr)
+for n in pairs(tfm.get.room.playerList) do
+					facingValue = tfm.get.room.playerList[n].isFacingRight and 1 or -1
+				end
+ui.setShamanName('<CE>VIVOS '..time1..'</CE> X <V></BL>'..time2..' VIVOS<V>')
+ui.setMapName('<J>Ratapult 2.0<J>')
+if(timermodule > 0)then
+		timermodule = timermodule - 1
+end
+
+if(timermodule == 0) then
+	tfm.exec.newGame(maps[math.random(#maps)], true)
+	time2spanpos = 0
+end
+	if vivo == 0 then
+		vivo = 0
+		if(timerbool == true) then
+       		tfm.exec.setGameTime(16)
+       		timermodule = 16
+       		timerbool = false
+      	 end
+        tfm.exec.disableAutoShaman(true)
+    end
+
+	for k, v in next, info do
+		if v.power[2] then
+			if(v.power[1] < 25) then
+			v.power[1] = v.power[1] + 4
+		end
+		end
+	end
+
+	for o,b in next, bigorn do
+		if(b.info[1] ~= nil and b.info[2] >= 1) then
+			b.info[2] = b.info[2] - 1
+		end
+		if(b.info[2] == 0)then
+			tfm.exec.removeObject(b.info[1])
+		end
+	end
+
+	contador = contador + 1
+		if(contador >= 6) then
+			if(contador >= 10) then
+				if(time1 == 0 and gameStopWin == false) then
+					if(timerbool == true) then
+					for n in pairs(tfm.get.room.playerList) do
+					if(info[n].time == 1) then
+					tfm.exec.giveCheese(n)
+					tfm.exec.playerVictory(n)
+					end
+					end
+					tfm.exec.setGameTime(0)
+					timermodule = 0
+					timerbool = false
+					end
+				end
+				
+				if(time2 == 0 and gameStopWin == false) then
+					if(timerbool == true) then
+					for n in pairs(tfm.get.room.playerList) do
+					if(info[n].time == 0) then
+					tfm.exec.giveCheese(n)
+					tfm.exec.playerVictory(n)
+				end
+					end
+					tfm.exec.setGameTime(0)
+					timermodule = 0
+					timerbool = false
+				end
+				end
+
+
+			end
+		end
+
+
+end
+
+function eventPlayerDied(name)
+    vivo=vivo-1
+	if(info[name].time == 0)then
+		time1 = time1 - 1
+	end
+	if(info[name].time == 1)then
+		time2 = time2 - 1
+	end
+end
+ 
+function eventPlayerWon(name)
+    vivo=vivo-1
+end
+
+eventChatCommand = function(n, c)
+	-- !10 = 10°
+	c = tonumber(c)
+	if c then
+		if(c > 60) then
+			changeAngle(n, 60 + 90)
+		end
+		if(c < -30) then
+			changeAngle(n,60)
+		end
+		if(c < 61 and c > (-31)) then
+			changeAngle(n,c + 90)
+		end
+	end
+end
+
+
+--player in pairs(tfm.get.room.playerList){lista da sala}
+--tfm.exec.setPlayerScore('spiderwii#0000', 1000, true) Ganha Pontos
+
+ui.addTextArea(19, "", n, 685, 378,106, 22, 0x6e3a25, 0x2b1915, 1, true)
+ui.addTextArea(20, "<a href='event:m'><p align=\"center\">STORE<p></a>", n, 687, 380, 102, 18, 0x122629, 0x2d5a61, 1, true)
+
+function eventTextAreaCallback(id,n,link)
+if link == [[m]] then
+ui.removeTextArea(19,n)
+ui.removeTextArea(20,n)
+ui.addTextArea(1, "", n, 668, 40, 30, 30, 0x271c15, 0x734028, 1, true)
+ui.addTextArea(5, "", n, 101, 38, 112, 30, 0x271c15, 0x734028, 1, true)
+ui.addTextArea(3, "", n, 225, 38, 112, 30, 0x271c15, 0x734028, 1, true)
+
+local i = 1
+    while i <= 9 do
+        if(admins[i] ~= nil) then
+        	if(admins[i] == n)then
+        		ui.addTextArea(29, "", n, 349, 38, 112, 30, 0x271c15, 0x734028, 1, true)
+				ui.addTextArea(30, "<p align=\"center\"><b><a:active>ADMIN</a></b></p>", n, 351, 40, 108, 30, 0x1e3d42, 0x0c191c, 1, true)
+        	end
+        end
+        i = i+1
+    end
+
+ui.addTextArea(2, "<a href='event:x'><R><p align=\"center\" style=\"font-size: 17px\"><b><font size=\"12\">X</font></b></p></R></a>", n, 670, 42, 26, 30, 0x1e3d42, 0x0c191c, 1, true)
+ui.addTextArea(4, "<p align=\"center\"><b>STATUS</b></p>", n, 227, 40, 108, 30, 0x1e3d42, 0x0c191c, 1, true)
+ui.addTextArea(6, "<p align=\"center\" style=\"font-size: 17px;color:white\"><b>STORE</b></p>", n, 103, 40, 108, 30, 0x1e3d42, 0x0c191c, 1, true)
+ui.addTextArea(7, "", n, 101, 66, 598, 170, 0x271c15, 0x734028, 1, true)
+ui.addTextArea(8, "", n, 104, 68, 593, 165, 0x1e3d42, 0x0c191c, 1, true)
+ui.addTextArea(11, "", n, 345, 72, 107, 156, 0x193336, 0x193336, 1, true)
+ui.addTextArea(10, "", n, 226, 71, 107, 156, 0x193336, 0x193336, 1, true)
+ui.addTextArea(9, "", n, 107, 71, 106, 156, 0x193336, 0x193336, 1, true)
+ui.addTextArea(13, "", n, 584, 72, 107, 156, 0x193336, 0x193336, 1, true)
+ui.addTextArea(12, "", n, 464, 72, 107, 156, 0x193336, 0x193336, 1, true)
+ui.addTextArea(19, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><VP><a> 0 / 25</a></VP></p>", n, 270, 184, 62, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(21, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><VP><a>0 / 50</a></VP></p>", n, 389, 184, 62, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(23, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><VP><a>0 / 75</a></VP></p>", n, 508, 184, 62, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(24, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><VP><a>0 / 100</a></VP></p>", n, 628, 184, 62, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(25, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a:active>L</a></p>", n, 227, 184, 20, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(26, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a:active>L</a></p>", n, 346, 184, 20, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(27, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a:active>L</a></p>", n, 465, 184, 20, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(28, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a:active>L</a></p>", n, 585, 184, 20, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(14, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><VP><a href='event:b1'>USANDO</a></VP></p>", n, 107, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+ui.addTextArea(15, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b2'>EQUIPAR</p></a>", n, 226, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+ui.addTextArea(16, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b3'>EQUIPAR</p></a>", n, 345, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+ui.addTextArea(17, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b4'>EQUIPAR</p></a>", n, 464, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+ui.addTextArea(18, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b5'>EQUIPAR</p></a>", n, 584, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+ui.addTextArea(31, "<p align=\"center\" font-size=\"15\">Anvil Name</p>", n, 107, 72, 106, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(32, "<p align=\"center\" font-size=\"15\">Anvil Name</p>", n, 226, 72, 106, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(33, "<p align=\"center\" font-size=\"15\">Anvil Name</p>", n, 345, 72, 106, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(34, "<p align=\"center\" font-size=\"15\">Anvil Name</p>", n, 464, 72, 106, 20, 0x0e2021, 0x0e2021, 1, true)
+ui.addTextArea(35, "<p align=\"center\" font-size=\"15\">Anvil Name</p>", n, 584, 72, 106, 20, 0x0e2021, 0x0e2021, 1, true)
+
+end
+
+--Remover
+if link == [[x]] then
+ui.removeTextArea(1,n)
+ui.removeTextArea(2,n)
+ui.removeTextArea(3,n)
+ui.removeTextArea(4,n)
+ui.removeTextArea(5,n)
+ui.removeTextArea(6,n)
+ui.removeTextArea(7,n)
+ui.removeTextArea(8,n)
+ui.removeTextArea(9,n)
+ui.removeTextArea(10,n)
+ui.removeTextArea(11,n)
+ui.removeTextArea(12,n)
+ui.removeTextArea(13,n)
+ui.removeTextArea(14,n)
+ui.removeTextArea(15,n)
+ui.removeTextArea(16,n)
+ui.removeTextArea(17,n)
+ui.removeTextArea(18,n)
+ui.removeTextArea(19,n)
+ui.removeTextArea(20,n)
+ui.removeTextArea(21,n)
+ui.removeTextArea(22,n)
+ui.removeTextArea(23,n)
+ui.removeTextArea(24,n)
+ui.removeTextArea(25,n)
+ui.removeTextArea(26,n)
+ui.removeTextArea(27,n)
+ui.removeTextArea(28,n)
+ui.removeTextArea(29,n)
+ui.removeTextArea(30,n)
+ui.removeTextArea(31,n)
+ui.removeTextArea(32,n)
+ui.removeTextArea(33,n)
+ui.removeTextArea(34,n)
+ui.removeTextArea(35,n)
+
+ui.addTextArea(19, "", n, 685, 378,106, 22, 0x6e3a25, 0x2b1915, 1, true)
+ui.addTextArea(20, "<a href='event:m'><p align=\"center\">STORE<p></a>", n, 687, 380, 102, 18, 0x122629, 0x2d5a61, 1, true)
+end
+if link == [[b1]] then
+	if(info[n].level == 0) then
+	info[n].bigorna = 10
+	ui.removeTextArea(14,n)
+	ui.removeTextArea(15,n)
+	ui.removeTextArea(16,n)
+	ui.removeTextArea(17,n)
+	ui.removeTextArea(18,n)
+	ui.addTextArea(14, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><VP><a href='event:b1'>USANDO</a></VP></p>", n, 107, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(15, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b2'>EQUIPAR</p></a>", n, 226, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(16, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b3'>EQUIPAR</p></a>", n, 345, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(17, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b4'>EQUIPAR</p></a>", n, 464, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(18, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b5'>EQUIPAR</p></a>", n, 584, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+end
+end
+if link == [[b2]] then
+	if(info[n].level >= 25) then
+	info[n].bigorna = 1005
+	ui.removeTextArea(14,n)
+	ui.removeTextArea(15,n)
+	ui.removeTextArea(16,n)
+	ui.removeTextArea(17,n)
+	ui.removeTextArea(18,n)
+	ui.addTextArea(14, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a href='event:b1'>EQUIPAR</a></p>", n, 107, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(15, "<p align=\"center\" style=\"font-size:13px;\"><VP><a href='event:b2'>USANDO</p></a></VP>", n, 226, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(16, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b3'>EQUIPAR</p></a>", n, 345, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(17, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b4'>EQUIPAR</p></a>", n, 464, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(18, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b5'>EQUIPAR</p></a>", n, 584, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+end
+end
+if link == [[b3]] then
+	if(info[n].level >= 50) then
+	info[n].bigorna = 1002
+	ui.removeTextArea(14,n)
+	ui.removeTextArea(15,n)
+	ui.removeTextArea(16,n)
+	ui.removeTextArea(17,n)
+	ui.removeTextArea(18,n)
+	ui.addTextArea(14, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a href='event:b1'>EQUIPAR</a></p>", n, 107, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(15, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b2'>EQUIPAR</p></a>", n, 226, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(16, "<p align=\"center\" style=\"font-size:13px;\"><VP><a href='event:b3'>USANDO</p></a></VP>", n, 345, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(17, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b4'>EQUIPAR</p></a>", n, 464, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(18, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b5'>EQUIPAR</p></a>", n, 584, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+end
+end
+if link == [[b4]] then
+	if(info[n].level >= 75) then
+	info[n].bigorna = 1003
+	ui.addTextArea(14, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a href='event:b1'>EQUIPAR</a></p>", n, 107, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(15, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b2'>EQUIPAR</p></a>", n, 226, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(16, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b3'>EQUIPAR</p></a>", n, 345, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(17, "<p align=\"center\" style=\"font-size:13px;\"><VP><a href='event:b4'>USANDO</p></a></VP>", n, 464, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(18, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b5'>EQUIPAR</p></a>", n, 584, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+end
+end
+if link == [[b5]] then
+	if(info[n].level >= 100) then
+	info[n].bigorna = 1004
+	ui.addTextArea(14, "<p align=\"center\" style=\"font-size:13px; color:#00f432\"><a href='event:b1'>EQUIPAR</a></p>", n, 107, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(15, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b2'>EQUIPAR</p></a>", n, 226, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(16, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b3'>EQUIPAR</p></a>", n, 345, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(17, "<p align=\"center\" style=\"font-size:13px;\"><a href='event:b4'>USANDO</p></a>", n, 464, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+	ui.addTextArea(18, "<p align=\"center\" style=\"font-size:13px;\"><VP><a href='event:b5'>EQUIPAR</p></a></VP>", n, 584, 207, 106, 20, 0x10292b, 0x10292b, 1, true)
+end
+end
+end
+
